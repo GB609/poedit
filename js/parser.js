@@ -17,7 +17,7 @@ function Parser() {
 		'>=': function(a,b) { return a >= b; },
 		'<': function(a,b) { return a < b; },
 		'>': function(a,b) { return a > b; },
-		'==': function(a,b) { return a == b}
+		'==': function(a,b) { return a == b; }
 	};
 	var RARITY_TOKENS = [ 'Normal', 'Magic', 'Rare', 'Unique' ];
 	var BOOL_TOKENS = [ 'True', 'False' ];
