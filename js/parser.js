@@ -1,7 +1,7 @@
 function Parser() {
 
 	var VISIBILITY_TOKENS = [ 'Show', 'Hide' ];
-	var FILTER_TOKENS = [
+	var FILTER_TOKENS = {[
 	    'ItemLevel', 'DropLevel', 'AreaLevel', 'Quality', 'Rarity', 'Class', 'BaseType', 'Sockets', 'LinkedSockets', 'SocketGroup',
 	    'Width', 'Height', 'Identified', 'Corrupted', 'ElderItem', 'ShaperItem', 'HasInfluence', 'ShapedMap', 'HasExplicitMod', 'MapTier',
 	    'GemLevel', 'StackSize', 'Prophecy', 'FracturedItem', 'SynthesisedItem', 'AnyEnchantment', 'HasEnchantment', 'BlightedMap', 'Replica'];
@@ -206,7 +206,12 @@ function Parser() {
 			case 'MapTier':
 			case 'GemLevel':
 			case 'StackSize':
-				parseNumericFilter( self, filters[token], arguments );
+				let propertyName = token.charAt(0).toUpperCase() + token.slice(1);
+				let filterInstance = NumericComparisonFilter.create(self, propertyName, arguments);
+				if(filterInstance != null){
+					self.currentRule.filters.push( filterInstance );
+				}
+				//parseNumericFilter( self, filters[token], arguments );
 				return;
 
 			case 'Rarity':
@@ -608,6 +613,7 @@ function Parser() {
 		let comparer = OPERATOR_TOKENS[operator];
 		return { comparer:comparer, value:value };
 	}
+	this.parseOperatorAndValue = parseOperatorAndValue; // temporary hack to expose function to filter factories
 
 	function parseNumbers (self, arguments) {
 		var tokens = getArgumentTokens( arguments );
