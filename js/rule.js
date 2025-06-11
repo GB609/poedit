@@ -18,6 +18,24 @@ function Rule (visibility) {
 
 
 // -------------------- Filters ---------------------
+class NumericComparisonFilter {
+	constructor(propertyName, comparator, filterValue){
+		this.propertyName = propertyName;
+		this.comparator = comparator;
+		this.value = filterValue;
+	}
+	match(item) {
+		return this.comparator(item[this.propertyName], this.value)
+	}
+	static create(parser, propertyName, argumentLine){
+		let parseResult = parser.parseNumericFilter(argumentLine);
+		if(parseResult){
+			return new NumericComparisonFilter(propertyName, parseResult.comparer, parseResult.arguments);
+		} else {
+			return null;
+		}
+	}
+}
 
 function ItemLevelFilter (comparer, itemLevel) {
 	this.match = function (item) {
