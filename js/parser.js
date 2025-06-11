@@ -1,7 +1,7 @@
 function Parser() {
 
 	var VISIBILITY_TOKENS = [ 'Show', 'Hide' ];
-	var FILTER_TOKENS = {[
+	var FILTER_TOKENS = [
 	    'ItemLevel', 'DropLevel', 'AreaLevel', 'Quality', 'Rarity', 'Class', 'BaseType', 'Sockets', 'LinkedSockets', 'SocketGroup',
 	    'Width', 'Height', 'Identified', 'Corrupted', 'ElderItem', 'ShaperItem', 'HasInfluence', 'ShapedMap', 'HasExplicitMod', 'MapTier',
 	    'GemLevel', 'StackSize', 'Prophecy', 'FracturedItem', 'SynthesisedItem', 'AnyEnchantment', 'HasEnchantment', 'BlightedMap', 'Replica'];
