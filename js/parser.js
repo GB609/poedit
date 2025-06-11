@@ -9,12 +9,21 @@ function Parser() {
 	    'SetBackgroundColor', 'SetBorderColor', 'SetTextColor', 'PlayAlertSound', 'PlayAlertSoundPositional',
 		'SetFontSize', 'DisableDropSound', 'CustomAlertSound', 'MinimapIcon', 'PlayEffect' ];
 	var META_TOKENS = [ 'Continue' ];
-	var OPERATOR_TOKENS = [ '=', '<', '>', '<=', '>=' ];
+	var OPERATOR_TOKENS = { 
+		'=': function(a,b) { return isFinite(a) ? a == b : a.includes(b); },
+		'!': function(a,b) { return a != b; },
+		'!=': function(a,b) { return a != b; },
+		'<=': function(a,b) { return a <= b; },
+		'>=': function(a,b) { return a >= b; },
+		'<': function(a,b) { return a < b; },
+		'>': function(a,b) { return a > b; },
+		'==': function(a,b) { return a == b}
+	};
 	var RARITY_TOKENS = [ 'Normal', 'Magic', 'Rare', 'Unique' ];
 	var BOOL_TOKENS = [ 'True', 'False' ];
 	var SOUND_TOKENS = [ 'ShAlchemy', 'ShBlessed', 'ShChaos', 'ShDivine', 'ShExalted', 'ShFusing', 'ShGeneral', 'ShMirror', 'ShRegal', 'ShVaal' ];
-  var COLOR_TOKENS = [ 'Red', 'Green', 'Blue', 'Brown', 'White', 'Yellow', 'Grey', 'Pink', 'Cyan', 'Purple', 'Orange' ];
-  var ICON_SHAPE_TOKENS = [ 'Circle', 'Diamond', 'Hexagon', 'Square', 'Star', 'Triangle', 'Kite', 'Pentagon', 'UpsideDownHouse', 'Raindrop', 'Moon', 'Cross' ];
+  	var COLOR_TOKENS = [ 'Red', 'Green', 'Blue', 'Brown', 'White', 'Yellow', 'Grey', 'Pink', 'Cyan', 'Purple', 'Orange' ];
+  	var ICON_SHAPE_TOKENS = [ 'Circle', 'Diamond', 'Hexagon', 'Square', 'Star', 'Triangle', 'Kite', 'Pentagon', 'UpsideDownHouse', 'Raindrop', 'Moon', 'Cross' ];
 
 	this.currentLineNr = 0;
 	this.currentRule = null;
@@ -270,7 +279,7 @@ function Parser() {
 	    }
 
 	    // If the first argument is an operator, we can use the parseOperatorAndValue function
-	    if (OPERATOR_TOKENS.includes( tokens[0] )) {
+	    if (OPERATOR_TOKENS[token[0]]) {
 	        args = parseOperatorAndValue( self, arguments );
             if (args != null) {
                 if (RARITY_TOKENS.indexOf( args.value ) < 0) {
@@ -298,7 +307,7 @@ function Parser() {
 	}
 
 	function parseSocketGroupFilter (self, filter, arguments) {
-		var args = parseStringArguments( self, arguments );
+		var args = parseStringArguments( self, arguments ).arguments;
 		if (args === null) return;
 		if (args.length === 0) {
 			reportUnexpectedEndOfLine( self, 'one or more strings' );
@@ -327,7 +336,7 @@ function Parser() {
 	}
 
 	function parseBoolFilter (self, filter, arguments) {
-		var args = parseStringArguments( self, arguments );
+		var args = parseStringArguments( self, arguments ).arguments;
 		if (args === null) return;
 		if (args.length === 0) {
 			reportUnexpectedEndOfLine( self, 'expected True or False' );
@@ -345,7 +354,7 @@ function Parser() {
 	}
 
 	function parseHasInfluenceFilter (self, filter, arguments) {
-		var args = parseStringArguments( self, arguments );
+		var args = parseStringArguments( self, arguments ).arguments;
 		if (args === null) return;
 		if (args.length === 0) {
 			reportUnexpectedEndOfLine( self, 'expected Influence list' );
@@ -551,7 +560,7 @@ function Parser() {
 	}
 
 	function parseFilenameModifier (self, modifier, arguments) {
-	    var argumentTokens = parseStringArguments( self, arguments );
+	    var argumentTokens = parseStringArguments( self, arguments ).arguments;
 	    if (argumentTokens.length == 0) {
 	        reportUnexpectedEndOfLine( self, arguments, 'Path or Filename' );
 	        return;
@@ -591,20 +600,13 @@ function Parser() {
 			return null;
 		}
 
-		if (OPERATOR_TOKENS.indexOf( operator ) < 0) {
+		if (typeof OPERATOR_TOKENS[operator] == "undefined") {
 			reportTokenError( self, operator, 'operator' );
 			return null;
 		}
 
-		var comparers = {
-			'=': function(a,b) { return a == b; },
-			'<': function(a,b) { return a < b; },
-			'>': function(a,b) { return a > b; },
-			'<=': function(a,b) { return a <= b; },
-			'>=': function(a,b) { return a >= b; }
-		};
-
-		return { comparer:comparers[operator], value:value };
+		let comparer = OPERATOR_TOKENS[operator];
+		return { comparer:comparer, value:value };
 	}
 
 	function parseNumbers (self, arguments) {
@@ -618,42 +620,21 @@ function Parser() {
 		return tokens.map( function(n) { return parseInt( n ); } );
 	}
 
+	var OPERATORS_REGEX = OPERATORS_REGEX = new RegExp("^(" + Object.keys(OPERATOR_TOKENS).join('|') + ")") 
 	function parseStringArguments (self, arguments) {
-		var tokens = arguments
-			.trim()
-			.split(' ');
-			// Don't remove empty tokens because they might represent multiple spaces inside quoted strings
-
-		var actualTokens = [];
-		var numQuotes = 0;
-		var currentToken = '';
-		for (var i=0; i < tokens.length; i++) {
-			numQuotes += StrUtils.countChar( '"', tokens[i] );
-			var withoutQuotes = StrUtils.replaceAll( tokens[i], '"', '' );
-
-			if (currentToken.length > 0) {
-				currentToken += ' ' + withoutQuotes;
-			}
-			else {
-				currentToken = withoutQuotes;
-			}
-
-			if (numQuotes % 2 == 0) {
-				actualTokens.push( currentToken );
-				currentToken = '';
-			}
+		//check quotes
+		foundQuotes = arguments.matchAll('"')
+		if([...foundQuotes].length % 2 != 0){
+			reportParseError( self, arguments, 'no matching quote - multiword strings likely treated separately' );
 		}
+		let operator = arguments.trim().match(OPERATORS_REGEX);
+		if(operator != null){ operator = operator[0] }
+		else { operator = "=" }
 
-		if (numQuotes % 2 != 0) {
-			reportParseError( self, arguments, 'no matching quote' );
-			actualTokens.push( currentToken );
-		}
+		let tokens = [...arguments.matchAll(/"[\w ]+"|[\w]+/g)]
+			.flat().map(value=>value.replace(/"/g, ''));
 
-		// Remove any empty or pure whitespace tokens.
-		// These may happen with certain unicode characters.
-		actualTokens = actualTokens.filter( function(token) { return token.trim().length > 0; } );
-
-		return actualTokens;
+		return {comparer: OPERATOR_TOKENS[operator], arguments: tokens};
 	}
 
 	// ------------------- ERROR MESSAGES --------------------------------------
