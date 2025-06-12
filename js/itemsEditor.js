@@ -176,9 +176,7 @@ function ItemsEditor() {
             return false;
         }
 
-        var numSockets = data.sockets.split(' ')
-            .map( function(sg) { return sg.length; } )
-            .reduce( function(prev, cur) { return prev + cur; } );
+        var numSockets = Number(SocketGroups.fromString(data.sockets));
         if (numSockets > 6) {
             alert( 'Item number ' + itemNr + '(' + data['name'] + ') has too many sockets' );
             return false;
@@ -204,7 +202,7 @@ function ItemsEditor() {
             rarity: Rarity.getName( item.rarity ),
             width: item.width,
             height: item.height,
-            sockets: item.sockets.join(' '),
+            sockets: item.sockets.toString(),
             identified: item.identified,
             corrupted: item.corrupted,
             fracturedItem: item.fracturedItem,
@@ -232,7 +230,7 @@ function ItemsEditor() {
             rarity: Rarity[ data.rarity ],
             width: data.width,
             height: data.height,
-            sockets: data.sockets.split(' '),
+            sockets: SocketGroups.fromString(' '),
             identified: data.identified,
             corrupted: data.corrupted,
             fracturedItem: data.fracturedItem,
