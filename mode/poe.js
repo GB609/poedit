@@ -86,6 +86,12 @@ function token(stream, state) {
             return 'error';
         }
 
+        let filterKeyword = getMatchingKeyword(stream, FILTER_DEFINITIONS.listNames());
+        if(filterKeyword){
+            // FIXME: set state to filterDef and pull grammer from it
+            return 'keyword'
+        }
+
         if (matchKeyword(stream, ['ItemLevel','DropLevel','AreaLevel','Quality','Sockets','LinkedSockets','Width','Height','MapTier','GemLevel','StackSize'])) {
             state.expected = ['NUMBER_FORMULA'];
             return 'keyword';
@@ -260,6 +266,14 @@ function matchKeyword(stream, keywords) {
         }
     }
     return false;
+}
+
+function getMatchingKeyword(stream, keywords) {
+    for (let keyword of keywords) {
+        let found = stream.match(new RegExp(`[ ]+${keyword}[ ]+`), true, false);
+        if (found) { return found.trim(); }
+    }
+    return undefined;
 }
 
 function indent(state, textAfter) {
