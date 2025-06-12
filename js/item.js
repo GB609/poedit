@@ -216,7 +216,7 @@ class Item {
 		itemName.innerHTML = this.getDisplayName();
 		itemDiv.appendChild( itemName );
 
-		if (this.getNumSockets() > 0) {
+		if (this.numSockets > 0) {
 			itemDiv.appendChild( drawSockets(this) );
 		}
 
@@ -452,7 +452,7 @@ class Item {
 		var socketsDiv = document.createElement( 'div' );
 		socketsDiv.className = 'sockets';
 
-		var padding = computeSocketPadding( item.getNumSockets() );
+		var padding = computeSocketPadding( item.numSockets );
 
 		var x = 0;
 		var y = 0;
@@ -487,7 +487,7 @@ class Item {
 		var socketsDiv = document.createElement( 'div' );
 		socketsDiv.className = 'sockets';
 
-		var padding = computeSocketPaddingSingleColumn( item.getNumSockets() );
+		var padding = computeSocketPaddingSingleColumn( item.numSockets );
 
 		var y = 0;
 		var linked = false;
