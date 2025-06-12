@@ -353,14 +353,10 @@ var PoEdit = new function()
 			});
 		}
 
-		if (PoEdit.itemCodeDisplayMode === 'HIGHLIGHT') {
-			PoEdit.highlightCodeRanges( itemCodeRanges );
-			PoEdit.scrollIntoView( item.matchingRule.codeLines[0] );
-		}
-		else {
-			PoEdit.showOnlyTheseCodeRanges( itemCodeRanges );
-			PoEdit.scrollIntoView( item.matchingRule.codeLines[0] );
-		}
+		if (PoEdit.itemCodeDisplayMode === 'HIGHLIGHT') { PoEdit.highlightCodeRanges( itemCodeRanges ); }
+		else { PoEdit.showOnlyTheseCodeRanges( itemCodeRanges ); }
+
+		if(item.matchingRule != null){ PoEdit.scrollIntoView( item.matchingRule.codeLines[0] ); }
 
 	}
 
