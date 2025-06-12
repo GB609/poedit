@@ -30,8 +30,20 @@ globalThis.ItemFilter = class ItemFilter {
 	}
 	match(item) {
 		this.converter ||= CONVERTER.NoChange;
-		let valueToUse = this.converter(item[this.propertyName]);
-		return this.comparator(valueToUse, this.value)
+		let actualItemValue = this.converter(item[this.propertyName]);
+		// easy variant first
+		if(!Array.isArray(this.value)){
+			return this.comparator(actualItemValue, this.value);
+		}
+
+		let testFunction = this.comparator.bind(null, actualItemValue);
+		let itemFound = this.values.some(testFunction);
+
+		// operator is NOT Equal, so it must return True only if NONE of the items match
+		if(this.comparator.isNegation){ return !itemFound; }
+		
+		//positive equality means that the operator must return true for one entry of the list
+		return itemFound;
 	}
 	toString() {
 		return `${this.constructor.name}{${this.propertyName} ${this.comparator.asString} ${this.value}}`;
