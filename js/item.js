@@ -59,6 +59,33 @@ var Influence = {
     }
 }
 
+class SocketGroups extends Array {
+	#value = null
+	constructor(value){
+		super()
+		this.#value = value;
+		for(let part of value){ this.push(part); }
+	}
+	
+	static fromString(socketString){
+		let result = socketString.split(' ').map(value => new SocketGroups(value));
+		return new SocketGroups(result);
+	}
+
+	[Symbol.toPrimitive](hint = "default"){
+		if(hint == "number"){
+			console.log("toPrimitive")
+			if(Array.isArray(this.#value)) { return this.reduce((prev, cur) => prev + Number(cur), 0); }
+			else { return this.#value.length; }
+		}
+
+		if(Array.isArray(this.#value)){ return this.#value.join(' ') }
+		else { return this.#value; }
+	}
+
+	toString(){ return this[Symbol.toPrimitive](); }
+}
+
 function ItemDefinition() {
 }
 
