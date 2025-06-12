@@ -1,10 +1,19 @@
+/** 
+* "raw" item data might reuse properties for multiple filters. To enable this, converter functions will be provided 
+* The default is to just use the property value as defined.
+* Functions to convert will all be prefixed with 'CONVERTER_' - this allows to build a dropdown based on name reflection later on.
+*/
+function CONVERTER_NoChange(value){ return value; }
+function CONVERTER_MaxOfArray(value){ return Math.max(...value); }
+
+/** Setup for configurable filters */
 var FILTER_CONFIG = {
 	'ItemLevel': {comp: 'NumericComparison'},
 	'DropLevel': {comp: 'NumericComparison'},
 	'AreaLevel': {comp: 'NumericComparison'},
 	'Quality': {comp: 'NumericComparison'},
 	'Sockets': {comp: 'NumericComparison', prop: 'numSockets'},
-	'LinkedSockets': {comp: 'NumericComparison'},
+	'LinkedSockets': {comp: 'NumericComparison', prop: 'sockets', converter: CONVERTER_MaxOfArray},
 	'Width': {comp: 'NumericComparison'},
 	'Height': {comp: 'NumericComparison'},
 	'MapTier': {comp: 'NumericComparison'},
@@ -220,8 +229,10 @@ function Parser() {
 			console.warn("USE NEW FILTERCFG", filterConfig)
 			let factory = globalThis[filterConfig.comp+'Filter'];
 			let propertyName = filterConfig.prop || token;
+			let converter = filterConfig.converter || CONVERTER_NoChange;
 			let filterInstance = factory.create(self, propertyName, arguments);
 			if (filterInstance != null) {
+				filterInstance.converter = converter;
 				self.currentRule.filters.push(filterInstance);
 			}
 			return;
