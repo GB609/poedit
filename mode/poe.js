@@ -99,7 +99,7 @@ function token(stream, state) {
             return 'keyword';
         }
         if (matchKeyword(stream, ['Class','BaseType','HasExplicitMod','CustomAlertSound','Prophecy','HasEnchantment'])) {
-            state.expected = ['STRINGS'];
+            state.expected = ['STRING_FORMULA'];
             return 'keyword';
         }
         if (matchKeyword(stream, ['SocketGroup'])) {
@@ -141,6 +141,14 @@ function token(stream, state) {
         return 'error';
     }
 
+    if (expected === 'STRING_FORMULA') {
+        state.expected.push('STRINGS');
+        if (matchKeyword(stream, OPERATORS.STRING_APPLICABLE)) {
+            return 'operator';
+        }
+        return null;
+    }
+  
     if (expected === 'STRINGS') {
         if (stream.eat('"')) {
             stream.skipTo('"');
@@ -157,7 +165,7 @@ function token(stream, state) {
 
     if (expected === 'NUMBER_FORMULA') {
         state.expected.push('NUMBER');
-        if (matchKeyword(stream, [ '<=', '>=', '=', '<', '>' ])) {
+        if (matchKeyword(stream, OPERATORS.ALL)) {
             return 'operator';
         }
         return null;
@@ -165,7 +173,7 @@ function token(stream, state) {
 
     if (expected === 'RARITY_FORMULA') {
         state.expected.push('RARITY');
-        if (matchKeyword(stream, [ '<=', '>=', '=', '<', '>' ])) {
+        if (matchKeyword(stream, OPERATORS.ALL)) {
             return 'operator';
         }
         return null;
@@ -192,7 +200,7 @@ function token(stream, state) {
     }
 
     if (expected === 'OPERATOR') {
-        if (matchKeyword(stream, [ '<=', '>=', '=', '<', '>' ])) {
+        if (matchKeyword(stream, OPERATORS.ALL)) {
             return 'operator';
         }
     }
