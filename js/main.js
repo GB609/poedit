@@ -346,10 +346,12 @@ var PoEdit = new function()
 			});
 		}
 
-		itemCodeRanges.push({
-			from: item.matchingRule.codeLines[0],
-			to: item.matchingRule.codeLines[item.matchingRule.codeLines.length - 1]
-		});
+		if(item.matchingRule != null){
+			itemCodeRanges.push({
+				from: item.matchingRule.codeLines[0],
+				to: item.matchingRule.codeLines[item.matchingRule.codeLines.length - 1]
+			});
+		}
 
 		if (PoEdit.itemCodeDisplayMode === 'HIGHLIGHT') {
 			PoEdit.highlightCodeRanges( itemCodeRanges );
