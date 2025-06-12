@@ -26,11 +26,12 @@ globalThis.ItemFilter = class ItemFilter {
 		this.propertyName = propertyName.charAt(0).toLowerCase() + propertyName.slice(1);
 		this.value = filterValue;
 		this.comparator = comparator || OPERATOR_TOKENS['='];
-		console.log(`L${parser.currentLineNr + 1}:`, "Generate", this.toString())
+		console.log(`L${parser.uiLineNumber()}:`, "Generate", this.toString())
 	}
 	match(item) {
-		console.log("compare", item, this.propertyName, "against", this.value)
-		return this.comparator(item[this.propertyName], this.value)
+		this.converter ||= CONVERTER_NoChange;
+		let valueToUse = this.converter(item[this.propertyName]);
+		return this.comparator(valueToUse, this.value)
 	}
 	toString() {
 		return `${this.constructor.name}{${this.propertyName} ${this.comparator.asString} ${this.value}}`;
@@ -52,7 +53,7 @@ globalThis.NumericComparisonFilter = class NumericComparisonFilter extends ItemF
 	}
 }
 
-class BooleanComparisonFilter extends ItemFilter {
+globalThis.BooleanComparisonFilter = class BooleanComparisonFilter extends ItemFilter {
 	static create(parser, propertyName, argumentLine) {
 		let result = parser.parseStringArguments(argumentLine);
 		if (result.comparer != null) {
