@@ -29,7 +29,7 @@ globalThis.ItemFilter = class ItemFilter {
 		console.log(`L${parser.uiLineNumber()}:`, "Generate", this.toString())
 	}
 	match(item) {
-		this.converter ||= CONVERTER_NoChange;
+		this.converter ||= CONVERTER.NoChange;
 		let valueToUse = this.converter(item[this.propertyName]);
 		return this.comparator(valueToUse, this.value)
 	}
