@@ -1,15 +1,15 @@
 var FILTER_CONFIG = {
-	'ItemLevel': ['NumericComparison'],
-	'DropLevel': ['NumericComparison'],
-	'AreaLevel': ['NumericComparison'],
-	'Quality': ['NumericComparison'],
-	'Sockets': ['NumericComparison'],
-	'LinkedSockets': ['NumericComparison'],
-	'Width': ['NumericComparison'],
-	'Height': ['NumericComparison'],
-	'MapTier': ['NumericComparison'],
-	'GemLevel': ['NumericComparison'],
-	'StackSize': ['NumericComparison']
+	'ItemLevel': {comp: 'NumericComparison'},
+	'DropLevel': {comp: 'NumericComparison'},
+	'AreaLevel': {comp: 'NumericComparison'},
+	'Quality': {comp: 'NumericComparison'},
+	'Sockets': {comp: 'NumericComparison', prop: 'numSockets'},
+	'LinkedSockets': {comp: 'NumericComparison'},
+	'Width': {comp: 'NumericComparison'},
+	'Height': {comp: 'NumericComparison'},
+	'MapTier': {comp: 'NumericComparison'},
+	'GemLevel': {comp: 'NumericComparison'},
+	'StackSize': {comp: 'NumericComparison'}
 }
 
 var OPERATOR_TOKENS = {
@@ -218,8 +218,9 @@ function Parser() {
 		let filterConfig = FILTER_CONFIG[token];
 		if(typeof filterConfig != "undefined"){
 			console.warn("USE NEW FILTERCFG", filterConfig)
-			let factory = globalThis[filterConfig[0]+'Filter'];
-			let filterInstance = factory.create(self, token, arguments);
+			let factory = globalThis[filterConfig.comp+'Filter'];
+			let propertyName = filterConfig.prop || token;
+			let filterInstance = factory.create(self, propertyName, arguments);
 			if (filterInstance != null) {
 				self.currentRule.filters.push(filterInstance);
 			}
