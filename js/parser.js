@@ -22,6 +22,8 @@ var FILTER_CONFIG = {
 	'StackSize': {comp: 'NumericComparison'}
 }
 
+var FILTER_DEFINITIONS;
+
 class OPERATORS {
 	static #DEFINITIONS = {
 		'=': function(a, b) { return isFinite(a) ? a == b : a.includes(b); },
@@ -75,7 +77,9 @@ function Parser() {
 	this.warnings = [];
 	this.lineTypes = [];
 
-	this.parse = function(lines) {
+	this.parse = function(lines) 
+		FILTER_DEFINITIONS = buildFilterDefinitionsFromConfig(FILTER_CONFIG);
+
 		this.currentRule = null;
 		this.ruleSet = [];
 		this.errors = [];
@@ -234,18 +238,10 @@ function Parser() {
 			'BlightedMap': BlightedMapFilter,
 			'Replica': ReplicaFilter
 		};
-		let filterInstance = null;
-		let filterConfig = FILTER_CONFIG[token];
-		if(typeof filterConfig != "undefined"){
-			console.warn("USE NEW FILTERCFG", filterConfig)
-			let factory = globalThis[filterConfig.comp+'Filter'];
-			let propertyName = filterConfig.prop || token;
-			let converter = CONVERTER[filterConfig.converter] || CONVERTER.NoChange;
-			let filterInstance = factory.create(self, propertyName, arguments);
-			if (filterInstance != null) {
-				filterInstance.converter = converter;
-				self.currentRule.filters.push(filterInstance);
-			}
+		let filterInstance = FILTER_DEFINITIONS.createInstance(self, token, arguments);
+		if(filterInstance != null){
+			console.warn("USE NEW FILTERCFG", filterInstance)
+			self.currentRule.filters.push(filterInstance);
 			return;
 		}
 		switch (token) {

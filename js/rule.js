@@ -18,8 +18,55 @@ function Rule(visibility) {
 
 
 // -------------------- Filters ---------------------
+/**
+* Expected config format:
+{
+  <FilterName>: { //as in POE item filter file
+  	comp: <subclassNameOf(ItemFilter) minus 'Filter'>,
+	prop: <name of property in Item>, //optional, will be <filterName> by default
+ 	converter: <key from CONVERTER>, //optional, only needed if item[prop] needs none-default type conversion or data extraction to work with the filter type
+  	config: <object> //filter-specific configuration data, like constants contained in an enum
+  }
+}
+This is the external config format which could also be imported from json.
+
+It will be translated into a slightly different format for internal use, containing classes and other non-json compatible entities
+*/
+function buildFilterDefinitionsFromConfig(filterConfig){
+	let definitions = {}
+	for(let [name, def] of Object.entries(filterConfig)){
+		let filterClass = FILTER_CLASSES[def.comp + 'Filter'];
+		if(typeof filterClass == "undefined"){
+			console.error("Invalid filter class type:", def.comp)
+			continue;
+		}
+		definitions[name] = {
+			propertyName: def.prop || name,
+			config: def.config || {},
+			converter: CONVERTER[def.converter] || CONVERTER.NoChange,
+			factory: filterClass
+		}
+	}
+	return {
+		listNames: function(){ return Object.keys(definitions) },
+		getMeta: function(filterName){ return definitions[filterName] },
+		
+		createInstance: function(parser, filterName, arguments){
+			let meta = this.getMeta(filterName);
+			if(typeof meta == "undefined"){ return null }
+			let filterInstance = meta.factory(parser, meta.propertyName, arguments);
+			if (filterInstance != null) {
+				filterInstance.config = meta.config;
+				filterInstance.converter = meta.converter;
+			}
+			return filterInstance;
+		},
+	}
+}
+
 /** Marker and Base class for all filters */
-globalThis.ItemFilter = class ItemFilter {
+var FILTER_CLASSES = {}
+FILTER_CLASSES.ItemFilter = class ItemFilter {
 	constructor(parser, propertyName, comparator, filterValue) {
 		this.parser = parser;
 		//make sure the property starts with a lower case letter
@@ -50,7 +97,7 @@ globalThis.ItemFilter = class ItemFilter {
 	}
 }
 
-globalThis.NumericComparisonFilter = class NumericComparisonFilter extends ItemFilter {
+FILTER_CLASSES.NumericComparisonFilter = class NumericComparisonFilter extends ItemFilter {
 	static create(parser, propertyName, argumentLine) {
 		let parseResult = parser.parseOperatorAndValue(argumentLine);
 		if (parseResult == null) {
@@ -65,7 +112,7 @@ globalThis.NumericComparisonFilter = class NumericComparisonFilter extends ItemF
 	}
 }
 
-globalThis.BooleanComparisonFilter = class BooleanComparisonFilter extends ItemFilter {
+FILTER_CLASSES.BooleanComparisonFilter = class BooleanComparisonFilter extends ItemFilter {
 	static create(parser, propertyName, argumentLine) {
 		let result = parser.parseStringArguments(argumentLine);
 		if (result.comparer != null) {
@@ -92,7 +139,7 @@ globalThis.BooleanComparisonFilter = class BooleanComparisonFilter extends ItemF
  * 2. partial strings
  * 
  */
-class EnumComparisonFilter extends ItemFilter {
+FILTER_CLASSES.EnumComparisonFilter = class EnumComparisonFilter extends ItemFilter {
 	/** enumDefinition: Array of strings, order is important for comparisons */
 	constructor(parser, enumDefinition, propertyName, comparator, value) {
 		super(parser, propertyName, comparator, value);
