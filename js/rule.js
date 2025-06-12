@@ -37,7 +37,7 @@ globalThis.ItemFilter = class ItemFilter {
 		}
 
 		let testFunction = this.comparator.bind(null, actualItemValue);
-		let itemFound = this.values.some(testFunction);
+		let itemFound = this.value.some(testFunction);
 
 		// operator is NOT Equal, so it must return True only if NONE of the items match
 		if(this.comparator.isNegation){ return !itemFound; }
@@ -111,7 +111,8 @@ class EnumComparisonFilter extends ItemFilter {
 		let result = parser.parseStringArguments(argumentLine);
 
 		if (result.value.length == 0) {
-			parser.reportTokenError(argumentLine, 'rarity')
+			parser.reportTokenError(argumentLine, 'rarity');
+			return null;
 		}
 
 		let values = []
