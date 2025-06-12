@@ -146,47 +146,21 @@ ItemDefinition.countSockets = function (sockets) {
 	return result;
 }
 
+var DEFAULT_ITEM_PROPERTIES = {}
+class Item {
+	constructor(itemDefinition){
+		Object.assign(this, DEFAULT_ITEM_PROPERTIES, itemDefinition);
+	
+		this.outerElement = null;
+		this.domElement = null;
+		this.beamElement = null;
+		this.mapIconElement = null;
+	
+		this.matchingRule = null;
+		this.previousMatchingRules = [];
+	}
 
-function Item (itemDefinition)
-{
-	this.name = itemDefinition.name;
-
-	this.itemLevel = itemDefinition.itemLevel;
-	this.dropLevel = itemDefinition.dropLevel;
-
-	this.quality = itemDefinition.quality;
-	this.rarity = itemDefinition.rarity;
-
-	this.itemClass = itemDefinition.itemClass;
-	this.baseType = itemDefinition.baseType;
-	this.identified = itemDefinition.identified;
-	this.corrupted = itemDefinition.corrupted;
-	this.fracturedItem = itemDefinition.fracturedItem;
-	this.synthesisedItem = itemDefinition.synthesisedItem;
-	this.replica = itemDefinition.replica;
-	this.influence = itemDefinition.influence;
-	this.enchantment = itemDefinition.enchantment;
-	this.shapedMap = itemDefinition.shapedMap;
-	this.blightedMap = itemDefinition.blightedMap;
-	this.mapTier = itemDefinition.mapTier;
-	this.gemLevel = itemDefinition.gemLevel;
-	this.stackSize = itemDefinition.stackSize;
-	this.explicitMods = itemDefinition.explicitMods;
-
-	this.width = itemDefinition.width;
-	this.height = itemDefinition.height;
-
-	this.sockets = itemDefinition.sockets;
-
-	this.outerElement = null;
-	this.domElement = null;
-	this.beamElement = null;
-	this.mapIconElement = null;
-
-	this.matchingRule = null;
-	this.previousMatchingRules = [];
-
-	this.getDisplayName = function() {
+	getDisplayName() {
 	    var prefix = '';
 		if (this.replica) {
 			prefix = 'Replica ';
@@ -208,15 +182,15 @@ function Item (itemDefinition)
 		}
 	}
 
-	this.getNumSockets = function() {
+	get numSockets() {
 		return ItemDefinition.countSockets( this.sockets );
 	}
 
-	this.hasExplicitMod = function(mod) {
+	hasExplicitMod(mod) {
 	    this.explicitMods.includes( mod );
 	}
 
-	this.draw = function() {
+	draw() {
 		var outerDiv = document.createElement( 'div' );
 		outerDiv.className = 'item-container';
 
@@ -242,7 +216,7 @@ function Item (itemDefinition)
 		itemName.innerHTML = this.getDisplayName();
 		itemDiv.appendChild( itemName );
 
-		if (this.getNumSockets() > 0) {
+		if (this.numSockets > 0) {
 			itemDiv.appendChild( drawSockets(this) );
 		}
 
@@ -273,7 +247,7 @@ function Item (itemDefinition)
 		this.domElement = itemDiv;
 	}
 
-	this.setVisibility = function (visibility) {
+	setVisibility(visibility) {
 		if (this.itemClass === 'Quest Items' || this.itemClass === 'Labyrinth Item' || this.itemClass === 'Labyrinth Trinket') {
 			visibility = true;
 		}
@@ -281,47 +255,47 @@ function Item (itemDefinition)
 		this.domElement.style.visibility = (visibility ? 'visible' : 'hidden');
 	}
 
-	this.setTextColor = function (color) {
+	setTextColor(color) {
 		getLabel( this ).style.color = buildCssColor( color );
 	}
 
-	this.removeBorder = function() {
+	removeBorder() {
 		this.domElement.style.border = '';
 	}
 
-	this.setBorderColor = function (color) {
+	setBorderColor(color) {
 		this.domElement.style.border = '1px solid ' + buildCssColor( color );
 	}
 
-	this.setBackgroundColor = function (color) {
+	setBackgroundColor(color) {
 		this.domElement.style.backgroundColor = buildCssColor( color );
 	}
 
-	this.setFontSize = function (size) {
+	setFontSize(size) {
 		var actualSize = MathUtils.remap( size, 18, 45, 8, 24 );
 		getLabel( this ).style.fontSize = (actualSize).toString() + 'px';
 	}
 
-	this.setBeam = function (color, temp) {
+	setBeam(color, temp) {
 	    this.removeBeam();
 	    this.beamElement = createBeam(color);
 	    this.domElement.appendChild(this.beamElement);
     }
 
-    this.removeBeam = function() {
+    removeBeam() {
         if (this.beamElement !== null) {
             this.domElement.removeChild(this.beamElement);
             this.beamElement = null;
         }
     }
 
-    this.setMapIcon = function (shape, color, size) {
+    setMapIcon(shape, color, size) {
         this.removeMapIcon();
         this.mapIconElement = createMapIcon(shape, color, size);
         this.domElement.appendChild(this.mapIconElement);
     }
 
-    this.removeMapIcon = function() {
+    removeMapIcon() {
         if (this.mapIconElement !== null) {
             this.domElement.removeChild(this.mapIconElement);
             this.mapIconElement = null;
@@ -478,7 +452,7 @@ function Item (itemDefinition)
 		var socketsDiv = document.createElement( 'div' );
 		socketsDiv.className = 'sockets';
 
-		var padding = computeSocketPadding( item.getNumSockets() );
+		var padding = computeSocketPadding( item.numSockets );
 
 		var x = 0;
 		var y = 0;
@@ -513,7 +487,7 @@ function Item (itemDefinition)
 		var socketsDiv = document.createElement( 'div' );
 		socketsDiv.className = 'sockets';
 
-		var padding = computeSocketPaddingSingleColumn( item.getNumSockets() );
+		var padding = computeSocketPaddingSingleColumn( item.numSockets );
 
 		var y = 0;
 		var linked = false;
