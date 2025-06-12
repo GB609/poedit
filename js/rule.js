@@ -25,7 +25,7 @@ globalThis.ItemFilter = class ItemFilter {
 		//make sure the property starts with a lower case letter
 		this.propertyName = propertyName.charAt(0).toLowerCase() + propertyName.slice(1);
 		this.value = filterValue;
-		this.comparator = comparator || OPERATOR_TOKENS['='];
+		this.comparator = comparator || OPERATORS.get('=');
 		console.log(`L${parser.uiLineNumber()}:`, "Generate", this.toString())
 	}
 	match(item) {

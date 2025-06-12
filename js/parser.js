@@ -14,7 +14,7 @@ var FILTER_CONFIG = {
 	'AreaLevel': {comp: 'NumericComparison'},
 	'Quality': {comp: 'NumericComparison'},
 	'Sockets': {comp: 'NumericComparison', prop: 'numSockets'},
-	'LinkedSockets': {comp: 'NumericComparison', prop: 'sockets', converter: CONVERTER.MaxOfArray},
+	'LinkedSockets': {comp: 'NumericComparison', prop: 'sockets', converter: 'MaxOfArray'},
 	'Width': {comp: 'NumericComparison'},
 	'Height': {comp: 'NumericComparison'},
 	'MapTier': {comp: 'NumericComparison'},
@@ -22,20 +22,30 @@ var FILTER_CONFIG = {
 	'StackSize': {comp: 'NumericComparison'}
 }
 
-var OPERATOR_TOKENS = {
-	'=': function(a, b) { return isFinite(a) ? a == b : a.includes(b); },
-	'!': function(a, b) { return a != b; },
-	'!=': function(a, b) { return a != b; },
-	'<=': function(a, b) { return a <= b; },
-	'>=': function(a, b) { return a >= b; },
-	'<': function(a, b) { return a < b; },
-	'>': function(a, b) { return a > b; },
-	'==': function(a, b) { return a == b; }
-}
-for(let [op, fun] of Object.entries(OPERATOR_TOKENS)){ 
-	fun.asString = op;
-	fun.isNegation = op.includes('!');
-	fun.isComparison = op.includes('<') || op.includes('>');
+class OPERATORS {
+	static #DEFINITIONS = {
+		'=': function(a, b) { return isFinite(a) ? a == b : a.includes(b); },
+		'!': function(a, b) { return a != b; },
+		'!=': function(a, b) { return a != b; },
+		'<=': function(a, b) { return a <= b; },
+		'>=': function(a, b) { return a >= b; },
+		'<': function(a, b) { return a < b; },
+		'>': function(a, b) { return a > b; },
+		'==': function(a, b) { return a == b; }
+	}
+	static {
+		for(let [op, fun] of Object.entries(OPERATORS.#DEFINITIONS)){ 
+			fun.asString = op;
+			fun.isNegation = op.includes('!');
+			fun.isComparison = op.includes('<') || op.includes('>');
+		}
+	}
+	static ALL = [...Object.keys(OPERATORS.#DEFINITIONS)];
+	static STRING_APPLICABLE = Object.entries(OPERATORS.#DEFINITIONS)
+		.filter(op => !op[0].isComparison)
+		.map(op => op[0]);
+
+	static get(token){ return OPERATORS.#DEFINITIONS[token]; }
 }
 
 var BOOL_TOKENS = {'True':true, 'False':false};
@@ -230,7 +240,7 @@ function Parser() {
 			console.warn("USE NEW FILTERCFG", filterConfig)
 			let factory = globalThis[filterConfig.comp+'Filter'];
 			let propertyName = filterConfig.prop || token;
-			let converter = filterConfig.converter || CONVERTER.NoChange;
+			let converter = CONVERTER[filterConfig.converter] || CONVERTER.NoChange;
 			let filterInstance = factory.create(self, propertyName, arguments);
 			if (filterInstance != null) {
 				filterInstance.converter = converter;
@@ -320,7 +330,7 @@ function Parser() {
 		}
 
 		// If the first argument is an operator, we can use the parseOperatorAndValue function
-		if (OPERATOR_TOKENS[token[0]]) {
+		if (OPERATORS.get(token[0])) {
 			args = parseOperatorAndValue(self, arguments);
 			if (args != null) {
 				if (RARITY_TOKENS.indexOf(args.value) < 0) {
@@ -622,12 +632,12 @@ function Parser() {
 			return null;
 		}
 
-		if (typeof OPERATOR_TOKENS[operator] == "undefined") {
+		if (typeof OPERATORS.get(operator) == "undefined") {
 			this.reportTokenError(operator, 'operator');
 			return null;
 		}
 
-		let comparer = OPERATOR_TOKENS[operator];
+		let comparer = OPERATORS.get(operator);
 		return { comparer: comparer, value: value };
 	}
 
@@ -642,7 +652,8 @@ function Parser() {
 		return tokens.map(function(n) { return parseInt(n); });
 	}
 
-	var OPERATORS_REGEX = OPERATORS_REGEX = new RegExp("^(" + Object.keys(OPERATOR_TOKENS).join('|') + ")")
+	// used for enums as well, so the regex here must handle all operators, not just the string compatible
+	var OPERATORS_REGEX = OPERATORS_REGEX = new RegExp("^(" + OPERATORS.ALL.join('|') + ")")
 	this.parseStringArguments = function(arguments) {
 		//check quotes
 		foundQuotes = arguments.matchAll('"')
@@ -650,7 +661,7 @@ function Parser() {
 			this.reportParseError(arguments, 'no matching quote - multiword strings likely treated separately');
 		}
 		let operator = arguments.trim().match(OPERATORS_REGEX);
-		if (operator != null) { operator = OPERATOR_TOKENS[operator[0]] }
+		if (operator != null) { operator = OPERATORS.get(operator[0]) }
 
 		let tokens = [...arguments.matchAll(/"[\w ]+"|[\w]+/g)]
 			.flat().map(value => value.replace(/"/g, ''));
