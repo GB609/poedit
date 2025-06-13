@@ -183,18 +183,25 @@ FILTER_CLASSES.EnumComparisonFilter = class EnumComparisonFilter extends ItemFil
 			}
 			values.push(index);
 		}
-		let comparator = result.comparer;
+
 		let value = null;
 		if (values.length == 1) { value = values[0] }
 		else { value = values; }
 
-		return new EnumComparisonFilter(parser, enumDefinition, propertyName, comparator, value);
+		return new EnumComparisonFilter(parser, enumDefinition, propertyName, result.comparer, value);
 	}
 }
 
 class StringListMemberFilter extends ItemFilter {
 	static create(parser, propertyName, argumentLine) {
 		let result = parser.parseStringArguments(argumentLine);
+
+		if (result.value.length == 0) {
+			reportUnexpectedEndOfLine(self, 'one or more strings');
+			return;
+		}
+
+		return new StringListMemberFilter(parser, propertyName, result.comparer, result.value);
 	}
 }
 
