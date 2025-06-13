@@ -13,13 +13,20 @@ var FILTER_CONFIG = {
 	'DropLevel': {comp: 'NumericComparison'},
 	'AreaLevel': {comp: 'NumericComparison'},
 	'Quality': {comp: 'NumericComparison'},
-	'Sockets': {comp: 'NumericComparison', prop: 'numSockets'},
+	//FIXME: Sockets and SocketGroup need custom matcher because they allow patterns like [1-6][RGBDAW]{0,6}
+	'Sockets': {comp: 'NumericComparison', prop: 'numSockets'}, 
 	'LinkedSockets': {comp: 'NumericComparison', prop: 'sockets', converter: 'MaxOfArray'},
 	'Width': {comp: 'NumericComparison'},
 	'Height': {comp: 'NumericComparison'},
 	'MapTier': {comp: 'NumericComparison'},
 	'GemLevel': {comp: 'NumericComparison'},
-	'StackSize': {comp: 'NumericComparison'}
+	'StackSize': {comp: 'NumericComparison'},
+
+	'ArchnemesisMod': {comp: 'StringListMember'},
+	'BaseType': {comp: 'StringListMember'},
+	'Class': {comp: 'StringListMember', prop: 'itemClass'},
+	'HasExplicitMod': {comp: 'StringListMember', prop: 'explicitMods', config: { supportsMatchCount: true } },
+	'HasEnchantment': {comp: 'StringListMember', prop: 'enchantment'},
 }
 
 var FILTER_DEFINITIONS;
