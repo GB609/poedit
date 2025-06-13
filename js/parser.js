@@ -77,7 +77,7 @@ function Parser() {
 	this.warnings = [];
 	this.lineTypes = [];
 
-	this.parse = function(lines) 
+	this.parse = function(lines) {
 		FILTER_DEFINITIONS = buildFilterDefinitionsFromConfig(FILTER_CONFIG);
 
 		this.currentRule = null;

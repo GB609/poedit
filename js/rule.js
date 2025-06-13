@@ -21,22 +21,22 @@ function Rule(visibility) {
 /**
 * Expected config format:
 {
-  <FilterName>: { //as in POE item filter file
-  	comp: <subclassNameOf(ItemFilter) minus 'Filter'>,
-	prop: <name of property in Item>, //optional, will be <filterName> by default
- 	converter: <key from CONVERTER>, //optional, only needed if item[prop] needs none-default type conversion or data extraction to work with the filter type
-  	config: <object> //filter-specific configuration data, like constants contained in an enum
-  }
+	<FilterName>: { //as in POE item filter file
+		comp: <subclassNameOf(ItemFilter) minus 'Filter'>,
+		prop: <name of property in Item>, //optional, will be <filterName> by default
+		converter: <key from CONVERTER>, //optional, only needed if item[prop] needs none-default type conversion or data extraction to work with the filter type
+		config: <object> //filter-specific configuration data, like constants contained in an enum
+	}
 }
 This is the external config format which could also be imported from json.
 
 It will be translated into a slightly different format for internal use, containing classes and other non-json compatible entities
 */
-function buildFilterDefinitionsFromConfig(filterConfig){
+function buildFilterDefinitionsFromConfig(filterConfig) {
 	let definitions = {}
-	for(let [name, def] of Object.entries(filterConfig)){
+	for (let [name, def] of Object.entries(filterConfig)) {
 		let filterClass = FILTER_CLASSES[def.comp + 'Filter'];
-		if(typeof filterClass == "undefined"){
+		if (typeof filterClass == "undefined") {
 			console.error("Invalid filter class type:", def.comp)
 			continue;
 		}
@@ -48,12 +48,12 @@ function buildFilterDefinitionsFromConfig(filterConfig){
 		}
 	}
 	return {
-		listNames: function(){ return Object.keys(definitions) },
-		getMeta: function(filterName){ return definitions[filterName] },
-		
-		createInstance: function(parser, filterName, arguments){
+		listNames: function() { return Object.keys(definitions) },
+		getMeta: function(filterName) { return definitions[filterName] },
+
+		createInstance: function(parser, filterName, arguments) {
 			let meta = this.getMeta(filterName);
-			if(typeof meta == "undefined"){ return null }
+			if (typeof meta == "undefined") { return null }
 			let filterInstance = meta.factory(parser, meta.propertyName, arguments);
 			if (filterInstance != null) {
 				filterInstance.config = meta.config;
@@ -79,7 +79,7 @@ FILTER_CLASSES.ItemFilter = class ItemFilter {
 		this.converter ||= CONVERTER.NoChange;
 		let actualItemValue = this.converter(item[this.propertyName]);
 		// easy variant first
-		if(!Array.isArray(this.value)){
+		if (!Array.isArray(this.value)) {
 			return this.comparator(actualItemValue, this.value);
 		}
 
@@ -87,8 +87,8 @@ FILTER_CLASSES.ItemFilter = class ItemFilter {
 		let itemFound = this.value.some(testFunction);
 
 		// operator is NOT Equal, so it must return True only if NONE of the items match
-		if(this.comparator.isNegation){ return !itemFound; }
-		
+		if (this.comparator.isNegation) { return !itemFound; }
+
 		//positive equality means that the operator must return true for one entry of the list
 		return itemFound;
 	}
@@ -133,11 +133,23 @@ FILTER_CLASSES.BooleanComparisonFilter = class BooleanComparisonFilter extends I
 	}
 }
 
-/** FIXME / TODO:
- * Test Valid syntaxes: 
- * 1. </> with list (although it doesn't make sense)
- * 2. partial strings
+/**
+ * Tested with 3.25 with Rarity filter (the only enum so far):<br>
+ * Syntax is <code>FilterName [operator] [constant]+</code>
+ * <p>
+ * Works with ALL operators, even in lists. 
+ * Operator is applied against every entry.
+ * If one entry returns true, the filter applies.
+ * This theoretically can be used for stuff like
  * 
+ * <code>
+ * Show
+ *     Rarity > Normal Rare
+ * </code>
+ * 
+ * Which will show everything > Normal. The second condition doesn't change the outcome,
+ * but the syntax is accepted by PoE.
+ * </p>
  */
 FILTER_CLASSES.EnumComparisonFilter = class EnumComparisonFilter extends ItemFilter {
 	/** enumDefinition: Array of strings, order is important for comparisons */
@@ -145,27 +157,27 @@ FILTER_CLASSES.EnumComparisonFilter = class EnumComparisonFilter extends ItemFil
 		super(parser, propertyName, comparator, value);
 		this.enum = enumDefinition;
 	}
-	match(item){
+	match(item) {
 		let property = item[this.propertyName];
-		if(isFinite(property)){ return super.match(item); }
+		if (isFinite(property)) { return super.match(item); }
 
 		let index = this.enum.indexOf(property);
 		// delegate to generic match with customized item copy
 		// done so that all generic handling for operators and lists apply
-		return super.match({[this.propertyName]:index})
+		return super.match({ [this.propertyName]: index })
 	}
-	static create(parser, propertyName, argumentLine, ...enumDefinition) {
+	static create(parser, propertyName, argumentLine, enumDefinition) {
 		let result = parser.parseStringArguments(argumentLine);
 
 		if (result.value.length == 0) {
-			parser.reportTokenError(argumentLine, 'rarity');
+			parser.reportTokenError("", `at least one of [${enumDefinition.join(', ')}]`);
 			return null;
 		}
 
 		let values = []
-		for(let token of result.value){
+		for (let token of result.value) {
 			let index = enumDefinition.indexOf(token);
-			if(index < 0){
+			if (index < 0) {
 				parser.reportTokenError(token, `at least one of [${enumDefinition.join(', ')}]`);
 				return null;
 			}
@@ -173,14 +185,14 @@ FILTER_CLASSES.EnumComparisonFilter = class EnumComparisonFilter extends ItemFil
 		}
 		let comparator = result.comparer;
 		let value = null;
-		if(values.length == 1){ value = values[0] }
+		if (values.length == 1) { value = values[0] }
 		else { value = values; }
 
 		return new EnumComparisonFilter(parser, enumDefinition, propertyName, comparator, value);
 	}
 }
 
-class StringListMatchingFilter extends ItemFilter {
+class StringListMemberFilter extends ItemFilter {
 	static create(parser, propertyName, argumentLine) {
 		let result = parser.parseStringArguments(argumentLine);
 	}
