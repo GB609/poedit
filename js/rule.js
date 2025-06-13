@@ -78,13 +78,15 @@ FILTER_CLASSES.ItemFilter = class ItemFilter {
 	match(item) {
 		this.converter ||= CONVERTER.NoChange;
 		let actualItemValue = this.converter(item[this.propertyName]);
-		// easy variant first
-		if (!Array.isArray(this.value)) {
-			return this.comparator(actualItemValue, this.value);
-		}
 
-		let testFunction = this.comparator.bind(null, actualItemValue);
-		let itemFound = this.value.some(testFunction);
+		let itemValues = Array.isArray(actualItemValue) ? actualItemValue : [actualItemValue];
+		let filterValues = Array.isArray(this.value) ? this.value : [this.value];
+		
+		let itemFound = false;
+		for(actualItemValue of itemValues){
+			let testFunction = this.comparator.bind(null, actualItemValue);
+			itemFound ||= this.value.some(testFunction);
+		}
 
 		// operator is NOT Equal, so it must return True only if NONE of the items match
 		if (this.comparator.isNegation) { return !itemFound; }
@@ -94,6 +96,41 @@ FILTER_CLASSES.ItemFilter = class ItemFilter {
 	}
 	toString() {
 		return `${this.constructor.name}{${this.propertyName} ${this.comparator.asString} ${this.value}}`;
+	}
+}
+
+/**
+* Some item filters provide complex checks, like only a certain property of a certain BaseType (Cluster Jewel).
+* This class provides a configurable model for this.
+* This only works if the checks to perform are basically independent.
+* It doesn't work, for example, to match against a list of strings and count the number of matches for another check.
+*/
+FILTER_CLASSES.CompositeFilter = class CompositeFilter extends ItemFilter {
+	match(item){
+		for(let f of this.filters) {
+			if(!f.match(item)) { return false; }
+		}
+	}
+	static create(parser, propertyName, argumentLine, configuration){
+		let parseResult = parser.parseStringArguments(argumentLine);
+		if (parseResult == null) {
+			return null;
+		}
+		
+		let subFilterDefs = buildFilterDefinitionsFromConfig(configuration);
+		let subFilters = []
+		for(let [name, config] of Object.entries(configuration)){
+			let argumentsToUse = config.argLine || argumentLine;
+			if(config.forceOperator && parseResult.comparer != null) {
+				argumentsToUse = argumentsToUse.replace(parseResult.comparer.asString, config.forceOperator)
+			}
+			let filter = subFilterDefs.createInstance(parser, name, argumentsToUse);
+			if(filter != null) { subFilters.push(filter); }
+		}
+
+		let composite = new CompositeFilter(parser, propertyName, null, null);
+		composite.filters = subFilters;
+		return composite;
 	}
 }
 
@@ -404,12 +441,6 @@ function GemLevelFilter(comparer, level) {
 function StackSizeFilter(comparer, size) {
 	this.match = function(item) {
 		return comparer(item.stackSize, size);
-	}
-}
-
-function ProphecyFilter(names) {
-	this.match = function(item) {
-		return names.some(function(name) { return item.baseType == 'Prophecy' && StrUtils.contains(name, item.name); });
 	}
 }
 
