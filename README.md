@@ -5,7 +5,7 @@ Path of Exile ItemScript Editor / Preview
 * A partial (and likely outdated) preview of the current state of this fork can be found at https://gb609.github.io/poedit/poedit.html
 
 # Note:
-This fork currently is in the process of reworking the underlying concept likely does not yet work as expected. 
+This fork currently is in the process of reworking the underlying concept. It's very likely that it does not yet work as expected. 
 I'm mostly doing this because i want to use this tool to develope my own item filter, so **i can't really guarantee long-time maintenance of the code**. It depends on how long my current PoE-binging phase lasts.
 
 The basic idea of the concept change is to have item properties and filters defined as (importable and exportable) configuration instead of hard-coding each filter as a dedicated class. With this change, most of the changes GGG makes to the item filter rules can be updated here without touching a single line of code. That reduces the overall maintenance effort needed on the long run. At best, it should be an update of the default configuration every so often once i'm done.
