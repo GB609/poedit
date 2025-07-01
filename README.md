@@ -13,7 +13,7 @@ The basic idea of the concept change is to have item properties and filters defi
 # Issues:
 Locked until this fork has become somewhat stable. 
 
-But i've opened the discussion section to provide a general communication channel. Please keep it civil there. I don't normally dabble in social aspects of platforms like this and i'll simple disable it again if it doesn't work out.
+But i've opened the discussion section to provide a general communication channel. Please keep it civil there. I don't normally dabble in social aspects of platforms like this and i'll simply disable it again if it doesn't work out.
 
 # Upstream:
 I normally go by the philosophy "upstream before downstream patching" when possible, because downstream patching just generates much more effort the more downstream starts to deviate. And pooling efforts allows for more and better progress, compared to just doing the same thing over and over again in forks and alternatives.
