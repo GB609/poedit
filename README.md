@@ -18,6 +18,6 @@ But i've opened the discussion section to provide a general communication channe
 # Upstream:
 I normally go by the philosophy "upstream before downstream patching" when possible, because downstream patching just generates much more effort the more downstream starts to deviate. And pooling efforts allows for more and better progress, compared to just doing the same thing over and over again in forks and alternatives.
 
-That being said, i **am** certainly doing a lot of heavy rewrites here at the moment which would be very hard to separate into manageable pull requests. Maybe that will change when i have sorted out the current state some more.
+That being said, i certainly **am** doing a lot of heavy rewrites here at the moment which would be very hard to separate into manageable pull requests. Maybe that will change when i have sorted out the current state some more.
 
 Nevertheless. When i've reached a more stable state, i'll see if, to what extend and how i can feed back my changes to upstream. That's also up to [bschug](https://github.com/bschug) and the question of long-term maintenance (him, me, someone else or no one at all).
